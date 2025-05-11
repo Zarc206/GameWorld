@@ -117,6 +117,7 @@ io.on('connection',(socket) =>{
     })
 
     socket.on('playerMove',(keys) =>{
+        console.log(w.players.length)
         for(let i = 0; i < w.players.length; i++){
             if(w.players[i].id == socket.id){
                 p = w.players[i]
