@@ -102,14 +102,10 @@ io.on('connection',(socket) =>{
     w.addPlayer(p)
     io.emit('draw',w)
 
-    socket.on('disconnect',(reason) =>{
+    socket.on('disconnect',(reason) => {
         console.log(reason)
-        for(let i = 0; i < w.players.length; i++){
-            if(w.players[i].id == socket.id){
-                w.players.pop(i)
-            }
-        }
-    })
+        delete w.players [socket.id]
+      })
 
     socket.on('playerJump',() => {
         for(let i = 0; i < w.players.length; i++){
