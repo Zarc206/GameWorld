@@ -54,8 +54,10 @@ class World{
                     if(this.grid[y][x] != 0){
                         if((p.x + p.width > 50 * x) && (50 * x + 50 > p.x) && (p.y + p.height > 50 * y) && (50 * y + 50 > p.y)){
                             p.y-= p.verticalMomentum;
+                            if (p.verticalMomentum > 0){
                             p.canJump = true
                             p.verticalMomentum = 0;
+                            }
                         }
                     }
                 }
@@ -72,6 +74,8 @@ class Player{
         this.verticalMomentum = 0;
         this.width = 50;
         this.height = 50
+        this.direction = "left"
+        this.facing = "none"
         this.id = id
         this.canJump = true
     }
@@ -127,6 +131,7 @@ io.on('connection',(socket) =>{
                 p = w.players[i]
                 if(keys.d){
                     p.x += p.speed;
+                    p.direction = "right"
                     for(let y = 0; y < w.grid.length; y++){
                         for(let x = 0; x < w.grid[y].length; x++){
                             if(w.grid[y][x] != 0){
@@ -136,9 +141,9 @@ io.on('connection',(socket) =>{
                             }
                         }
                     }
-                }
-                if(keys.a){
+                } else if(keys.a){
                     p.x -= p.speed;
+                    p.direction = "left"
                     for(let y = 0; y < w.grid.length; y++){
                         for(let x = 0; x < w.grid[y].length; x++){
                             if(w.grid[y][x] != 0){
@@ -148,7 +153,45 @@ io.on('connection',(socket) =>{
                             }
                         }
                     }
+                } else {
+                    p.direction = "none"
                 }
+                if(keys.w){
+                    p.facing = "up"
+                } else if (keys.s){
+                    p.facing = "down"
+                } else {
+                    p.facing = "none"
+                }
+            }
+        }
+    })
+
+    socket.on('playerBreak',() =>{
+        for(let i = 0; i < w.players.length; i++){
+            if((w.players[i].id == socket.id)){
+                p = w.players[i]
+                let xOffDig = 0;
+                let yOffDig = 0
+                if(p.direction == "right"){
+                    xOffDig = 1
+                } else if (p.direction == "left") {
+                    xOffDig = -1
+                }
+                if (p.facing == "up"){
+                    yOffDig = -1
+                } 
+                if (p.facing == "down"){
+                    yOffDig = 1
+                } 
+
+                if ((Math.round(p.y/50) + yOffDig >= 0) && (Math.round(p.x/50) + xOffDig >= 0)){
+                    if(w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig] != 0){
+                        w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig] = 0
+                        io.emit('reDraw',w)
+                    }
+                }
+
             }
         }
     })

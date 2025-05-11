@@ -10,7 +10,9 @@ var yOffset = 300
 var xOffset = 0
 var keys = {
     a:false,
-    d:false
+    d:false,
+    w:false,
+    s:false
 }
 
 class World{
@@ -26,7 +28,7 @@ class World{
                     c.fillRect(x*50 + xOffset ,y*50 + yOffset,50,50);
                     c.fillStyle = "lime"
                     c.fillRect(x*50+1 + xOffset,y*50 +  yOffset + 1, 48,48)
-                }
+                } 
             }
         }
         for(let i = 0; i < this.players.length; i++){
@@ -48,6 +50,9 @@ class World{
             c.fillRect(this.players[i].x + xOffset,this.players[i].y + yOffset,50,50)
         }
     }
+    update(grid){
+        this.grid = grid
+    }
 
 }
 
@@ -57,10 +62,13 @@ socket.on('draw',(w) =>{
     window.addEventListener('keyup',keysReleased)
 
 })
+socket.on('reDraw',(w) =>{
+    world.update(w.grid)
+
+})
 socket.on('updatePlayers',(players) =>{
     world.players = players
 })
-
 function animate(){
     c.fillStyle = "white"
     c.fillRect(0,0,canvas.width,canvas.height)
@@ -74,6 +82,13 @@ function animate(){
 function keysPressed(e){
     if(e.key == "w"){
         socket.emit('playerJump')
+        keys.w = true
+    }
+    if (e.key == "s"){
+        keys.s = true
+    }
+    if(e.key == "o"){
+        socket.emit('playerBreak')
     }
     if(e.key == "d"){
         keys.d = true;
@@ -88,6 +103,12 @@ function keysReleased(e){
     } 
     if(e.key == "a"){
         keys.a = false;
+    }
+    if(e.key == "w"){
+        keys.w = false;
+    } 
+    if(e.key == "s"){
+        keys.s = false;
     }
 }
 animate()
