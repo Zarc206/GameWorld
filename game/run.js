@@ -106,8 +106,8 @@ io.on('connection',(socket) =>{
         console.log(reason)
         for(let i = 0; i < w.players.length; i++){
             if(w.players[i].id == socket.id){
-                w.players.pop(i)
-                i--
+                w.players.splice(i,1)
+            
             }
         }
     })
