@@ -102,10 +102,15 @@ io.on('connection',(socket) =>{
     w.addPlayer(p)
     io.emit('draw',w)
 
-    socket.on('disconnect',(reason) => {
+    socket.on('disconnect',(reason) =>{
         console.log(reason)
-        delete w.players [socket.id]
-      })
+        for(let i = 0; i < w.players.length; i++){
+            if(w.players[i].id == socket.id){
+                w.players.pop(i)
+                i--
+            }
+        }
+    })
 
     socket.on('playerJump',() => {
         for(let i = 0; i < w.players.length; i++){
@@ -117,7 +122,6 @@ io.on('connection',(socket) =>{
     })
 
     socket.on('playerMove',(keys) =>{
-        console.log(w.players.length)
         for(let i = 0; i < w.players.length; i++){
             if(w.players[i].id == socket.id){
                 p = w.players[i]
