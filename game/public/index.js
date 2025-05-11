@@ -17,7 +17,6 @@ class World{
     constructor(grid){
         this.grid = grid.grid
         this.players = grid.players
-        drawings.push(this)
     }
     draw(){
         for(let y = 0; y < this.grid.length; y++){
@@ -67,6 +66,7 @@ function animate(){
     c.fillRect(0,0,canvas.width,canvas.height)
     window.requestAnimationFrame(animate)
     socket.emit('playerMove',(keys))
+    world.draw();
     for(let i = 0; i < drawings.length; i++){
         drawings[i].draw();
     }
