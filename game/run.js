@@ -40,10 +40,10 @@ class World{
                         if (Math.random() > 0.5){
                             this.grid[i].push(new Block("grey",1))
                         } else {
-                            this.grid[i].push(new Block("brown",1))
+                            this.grid[i].push(new Block("sienna",1))
                         }
                     } else{
-                        this.grid[i].push(new Block("brown",1))
+                        this.grid[i].push(new Block("sienna",1))
                     }
                 } else {
                     this.grid[i].push(0)
@@ -58,6 +58,7 @@ class World{
     fallPlayers(){
         for(let i = 0; i < this.players.length; i++){
             let p = this.players[i]
+            p.damagedTimer--;
 
             p.verticalMomentum++;
             p.y += p.verticalMomentum
@@ -99,6 +100,8 @@ class Player{
         this.direction = "left"
         this.facing = "none"
         this.id = id
+        this.hp = 100
+        this.damagedTimer = 0
         this.canJump = true
     }
 }
@@ -106,6 +109,14 @@ class Block{
     constructor(color,durability){
         this.color = color
         this.durability = durability
+    }
+}
+class Hitbox{
+    constructor(x,y,width,height){
+        this.width = width;
+        this.height = height;
+        this.x = x;
+        this.y = y;
     }
 }
 
@@ -135,10 +146,14 @@ function gameTick(){
         gameTick()
     },10)
 }
+function isColide(a,b){
+    if((a.x + a.width > b.x) && (b.x + b.width > a.x) && (a.y + a.height > b.y) && (b.y + b.height > a.y)){
+        return(true)
+    }
+    return(false)
+}
 
 gameTick()
-
-
 
 io.on('connection',(socket) =>{
     console.log('a user connected')
@@ -225,17 +240,32 @@ io.on('connection',(socket) =>{
                 if (p.facing == "down"){
                     yOffDig = 1
                 } 
-
                 if ((Math.round(p.y/50) + yOffDig >= 0) && (Math.round(p.x/50) + xOffDig >= 0)){
                     if(w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig] != 0){
                         w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig] = 0
                         io.emit('reDraw',w)
+                    } else {
+                        h = new Hitbox(p.x + 50 * xOffDig, p.y,50,50)
+                        for(let i = 0; i < w.players.length; i++){
+                            console.log(isColide(h,w.players[i]))
+                            if ((w.players[i] != p) && (isColide(h,w.players[i])) && (w.players[i].damagedTimer < 0)){
+                                w.players[i].damagedTimer = 5;
+                                w.players[i].hp -= 25
+                                if (w.players[i].hp <= 0){
+                                    for(let ii = 0; ii < w.players.length; ii++){
+                                        if(w.players[ii].id == w.players[i].id){
+                                            p = new Player(2500,-500,w.players[ii].id )
+                                            w.players.splice(ii,1)
+                                            w.addPlayer(p)
+                                        
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-
             }
         }
     })
-
-
 })

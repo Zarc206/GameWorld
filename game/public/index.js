@@ -62,8 +62,13 @@ class World{
                     yOffset = 300 - this.players[i].y;
                 }
             }
-            c.fillStyle = "red"
+            c.fillStyle = "black"
+            if(this.players[i].damagedTimer > 0){
+                c.fillStyle = "red"
+            }
             c.fillRect(this.players[i].x + xOffset,this.players[i].y + yOffset,50,50)
+            c.fillStyle = "red"
+            c.fillRect(this.players[i].x + xOffset+5,this.players[i].y + yOffset+5,40,40)
         }
     }
     update(grid){
