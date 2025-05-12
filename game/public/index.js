@@ -21,12 +21,28 @@ class World{
         this.players = grid.players
     }
     draw(){
-        for(let y = 0; y < this.grid.length; y++){
-            for(let x = 0; x < this.grid[y].length; x++){
+        let p;
+        for(let i = 0; i < this.players.length; i++){
+            if (this.players[i].id == socket.id){
+                p = this.players[i]
+            }
+        }
+
+        let filler = 0; 
+        if (Math.floor((p.y - 900)/50) > 0){
+            filler = Math.floor((p.y - 900)/50)
+        }
+
+        for(let y = filler;  (y < this.grid.length) && (y < Math.floor((p.y + 800)/50)); y++){
+            filler = 0;
+            if (Math.floor((p.x - 900)/50) > 0){
+                filler = Math.floor((p.x - 900)/50)
+            }
+            for(let x = filler; (x < this.grid[y].length) && (x < Math.floor((p.x + 800)/50)); x++){
                 if(this.grid[y][x] != 0){
                     c.fillStyle = "black"
                     c.fillRect(x*50 + xOffset ,y*50 + yOffset,50,50);
-                    c.fillStyle = "lime"
+                    c.fillStyle = this.grid[y][x].color
                     c.fillRect(x*50+1 + xOffset,y*50 +  yOffset + 1, 48,48)
                 } 
             }

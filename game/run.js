@@ -30,8 +30,21 @@ class World{
         for(let i = 0; i < height; i++){
             this.grid.push([]);
             for(let ii = 0; ii < width; ii++){
-                if(Math.random() < 0.9){
-                    this.grid[i].push(1)
+                if((Math.random() < 0.9) && (i > 4)){
+                    
+                    if (i == 5){
+                    this.grid[i].push(new Block("lime",1))
+                    } else if (i > 20){
+                        this.grid[i].push(new Block("grey",1))
+                    } else if(i == 20){
+                        if (Math.random() > 0.5){
+                            this.grid[i].push(new Block("grey",1))
+                        } else {
+                            this.grid[i].push(new Block("brown",1))
+                        }
+                    } else{
+                        this.grid[i].push(new Block("brown",1))
+                    }
                 } else {
                     this.grid[i].push(0)
                 }
@@ -64,6 +77,15 @@ class World{
             }
         }
     }
+    addStructure(s,iny,inx){
+        for(let y = 0; y < s.grid.length; y++){
+            for(let x = 0; x < s.grid[y].length; x++){
+                if(s.grid[y][x] != 0){
+                    this.grid[y+iny][x+inx] = new Block(s.colors[s.grid[y][x] - 1], 1)
+                }
+            }
+        }
+    }
 
 }
 class Player{
@@ -80,9 +102,28 @@ class Player{
         this.canJump = true
     }
 }
+class Block{
+    constructor(color,durability){
+        this.color = color
+        this.durability = durability
+    }
+}
 
-var w = new World(100,100)
+let tree = {
+    grid: [
+    [0,1,1,1,0],
+    [1,1,1,1,1],
+    [0,1,1,1,0],
+    [0,0,2,0,0],
+    [0,0,2,0,0],
+],
+    colors: ["green","brown"]
+}
 
+var w = new World(500,100)
+for(let i = 0; i < w.grid[0].length / 10; i++){
+    w.addStructure(tree,0,i * 10 + Math.floor(Math.random()*5))
+}
 
 
 
