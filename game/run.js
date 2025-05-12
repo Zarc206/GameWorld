@@ -158,7 +158,7 @@ gameTick()
 io.on('connection',(socket) =>{
     console.log('a user connected')
 
-    p = new Player(2500,-500,socket.id)
+    p = new Player(7500,-500,socket.id)
     w.addPlayer(p)
     io.emit('draw',w)
 
@@ -247,7 +247,6 @@ io.on('connection',(socket) =>{
                     } else {
                         h = new Hitbox(p.x + 50 * xOffDig, p.y,50,50)
                         for(let i = 0; i < w.players.length; i++){
-                            console.log(isColide(h,w.players[i]))
                             if ((w.players[i] != p) && (isColide(h,w.players[i])) && (w.players[i].damagedTimer < 0)){
                                 w.players[i].damagedTimer = 5;
                                 w.players[i].hp -= 25
