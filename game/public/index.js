@@ -38,7 +38,7 @@ class World{
             if (Math.floor((p.x - 900)/50) > 0){
                 filler = Math.floor((p.x - 900)/50)
             }
-            for(let x = filler; (x < this.grid[y].length) && (x < Math.floor((p.x + 800)/50)); x++){
+            for(let x = filler; (x < this.grid[y].length) && (x < Math.floor((p.x + 900)/50)); x++){
                 if(this.grid[y][x] != 0){
                     c.fillStyle = "black"
                     c.fillRect(x*50 + xOffset ,y*50 + yOffset,50,50);
