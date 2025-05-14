@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const port = 3000
+const port = 2000
 const fs = require('fs')
 
 const http = require('http')
@@ -33,17 +33,17 @@ class World{
                 if((Math.random() < 0.9) && (i > 4)){
                     
                     if (i == 5){
-                    this.grid[i].push(new Block("lime",1))
+                    this.grid[i].push(grass)
                     } else if (i > 20){
-                        this.grid[i].push(new Block("grey",1))
+                        this.grid[i].push(stone)
                     } else if(i == 20){
                         if (Math.random() > 0.5){
-                            this.grid[i].push(new Block("grey",1))
+                            this.grid[i].push(stone)
                         } else {
-                            this.grid[i].push(new Block("sienna",1))
+                            this.grid[i].push(dirt)
                         }
                     } else{
-                        this.grid[i].push(new Block("sienna",1))
+                        this.grid[i].push(dirt)
                     }
                 } else {
                     this.grid[i].push(0)
@@ -82,7 +82,7 @@ class World{
         for(let y = 0; y < s.grid.length; y++){
             for(let x = 0; x < s.grid[y].length; x++){
                 if(s.grid[y][x] != 0){
-                    this.grid[y+iny][x+inx] = new Block(s.colors[s.grid[y][x] - 1], 1)
+                    this.grid[y+iny][x+inx] = s.items[s.grid[y][x] - 1]
                 }
             }
         }
@@ -103,12 +103,45 @@ class Player{
         this.hp = 100
         this.damagedTimer = 0
         this.canJump = true
+        this.inventory = [stone]
+        this.selectedValue = 0;
+        this.inventoryNumbers = [1]
+    }
+    addItem(item){
+        if(!(this.inventory.includes(item))){
+            if(this.selectedValue < 0){
+                this.selectedValue = 0
+            }
+            this.inventory.push(item)
+            this.inventoryNumbers.push(1)
+        } else {
+            for(let i = 0; i < this.inventory.length; i++){
+                if(this.inventory[i] == item){
+                    this.inventoryNumbers[i]++;
+                }
+            }
+        }
+    }
+    removeItem(item){
+        for(let i = 0; i < this.inventory.length; i++){
+            if(this.inventory[i] == item){
+                this.inventoryNumbers[i]--;
+                if (this.inventoryNumbers[i] <= 0){
+                    this.inventory.splice(i,1)
+                    this.inventoryNumbers.splice(i,1)
+                    if(this.selectedValue > this.inventory.length -1){
+                        this.selectedValue--;
+                    }
+                }
+            }
+        }
     }
 }
-class Block{
-    constructor(color,durability){
+class Item{
+    constructor(name,placable, color){
+        this.name = name
         this.color = color
-        this.durability = durability
+        this.placable = placable
     }
 }
 class Hitbox{
@@ -120,6 +153,12 @@ class Hitbox{
     }
 }
 
+var wood = new Item("Wood",true,"brown")
+var leaves = new Item("Leaves",true,"green")
+var grass = new Item("Grass",true,"lime")
+var stone = new Item("Stone",true,"grey")
+var dirt = new Item("Dirt", true, "sienna")
+
 let tree = {
     grid: [
     [0,1,1,1,0],
@@ -128,15 +167,13 @@ let tree = {
     [0,0,2,0,0],
     [0,0,2,0,0],
 ],
-    colors: ["green","brown"]
+    items: [leaves,wood]
 }
 
 var w = new World(500,100)
 for(let i = 0; i < w.grid[0].length / 10; i++){
     w.addStructure(tree,0,i * 10 + Math.floor(Math.random()*5))
 }
-
-
 
    
 function gameTick(){
@@ -171,7 +208,6 @@ io.on('connection',(socket) =>{
             }
         }
     })
-
     socket.on('playerJump',() => {
         for(let i = 0; i < w.players.length; i++){
             if((w.players[i].id == socket.id) && (w.players[i].canJump)){
@@ -180,7 +216,6 @@ io.on('connection',(socket) =>{
             }
         }
     })
-
     socket.on('playerMove',(keys) =>{
         for(let i = 0; i < w.players.length; i++){
             if(w.players[i].id == socket.id){
@@ -222,7 +257,6 @@ io.on('connection',(socket) =>{
             }
         }
     })
-
     socket.on('playerBreak',() =>{
         for(let i = 0; i < w.players.length; i++){
             if((w.players[i].id == socket.id)){
@@ -242,6 +276,7 @@ io.on('connection',(socket) =>{
                 } 
                 if ((Math.round(p.y/50) + yOffDig >= 0) && (Math.round(p.x/50) + xOffDig >= 0)){
                     if(w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig] != 0){
+                        p.addItem(w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig])
                         w.grid[Math.round(p.y/50) + yOffDig][Math.round(p.x/50) + xOffDig] = 0
                         io.emit('reDraw',w)
                     } else {
@@ -267,4 +302,33 @@ io.on('connection',(socket) =>{
             }
         }
     })
+    socket.on('playerPlace',() => {
+        for(let i = 0; i < w.players.length; i++){
+            if((w.players[i].id == socket.id)){
+                p = w.players[i]
+                if ((Math.round(p.y/50) +1 >= 0) && (Math.round(p.x/50) >= 0)){
+                    if((p.inventory.length > 0) && (p.inventory[p.selectedValue].placable) &&(w.grid[Math.ceil(p.y/50) +1][Math.round(p.x/50)] == 0)){
+                        w.grid[Math.ceil(p.y/50) +1][Math.round(p.x/50)] = p.inventory[p.selectedValue]
+                        p.removeItem(p.inventory[p.selectedValue])
+                        io.emit('reDraw',w)
+
+                    }
+                }
+            }
+        }
+    })
+    socket.on('inventorySelector',(direction) =>{
+        for(let i = 0; i < w.players.length; i++){
+            if((w.players[i].id == socket.id)){
+                p = w.players[i]
+                if((direction == "up") && (p.selectedValue > 0)){
+                    p.selectedValue--
+                }
+                if ((direction == "down") && (p.selectedValue < p.inventory.length - 1)){
+                    p.selectedValue++
+                }
+            }
+        }
+    })
+
 })

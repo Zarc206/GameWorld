@@ -81,6 +81,7 @@ socket.on('draw',(w) =>{
     world = new World(w);
     window.addEventListener('keydown',keysPressed)
     window.addEventListener('keyup',keysReleased)
+    animate()
 
 })
 socket.on('reDraw',(w) =>{
@@ -91,13 +92,28 @@ socket.on('updatePlayers',(players) =>{
     world.players = players
 })
 function animate(){
-    c.fillStyle = "white"
+    c.fillStyle = "cyan"
     c.fillRect(0,0,canvas.width,canvas.height)
     window.requestAnimationFrame(animate)
     socket.emit('playerMove',(keys))
     world.draw();
     for(let i = 0; i < drawings.length; i++){
         drawings[i].draw();
+    }
+    for(let i = 0; i < world.players.length; i++){
+        if(world.players[i].id == socket.id){
+
+            for(let ii = 0; ii < world.players[i].inventory.length; ii++){
+                if(ii == world.players[i].selectedValue){
+                    c.fillStyle = "yellow"
+                    c.fillRect(40,34 + 20 * ii, 200,20)
+                }
+                c.fillStyle = "black"
+                c.font = "20px solid black"
+                c.fillText(world.players[i].inventory[ii].name,50,50 + 20 * ii)
+                c.fillText(world.players[i].inventoryNumbers[ii],150,50 + 20 * ii)
+            }
+        }
     }
 }
 function keysPressed(e){
@@ -111,6 +127,16 @@ function keysPressed(e){
     if(e.key == "o"){
         socket.emit('playerBreak')
     }
+    if(e.key == "i"){
+        socket.emit('playerPlace')
+    }
+    if(e.key == "ArrowUp"){
+        socket.emit('inventorySelector',("up"))
+    }
+    if(e.key == "ArrowDown"){
+        socket.emit('inventorySelector',("down"))
+    }
+
     if(e.key == "d"){
         keys.d = true;
     }
@@ -132,4 +158,3 @@ function keysReleased(e){
         keys.s = false;
     }
 }
-animate()
